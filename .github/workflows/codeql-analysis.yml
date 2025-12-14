@@ -4,6 +4,14 @@ name: "CodeQL Security Analysis"
 on:
   push:
     branches: [ main, master ]
+    paths-ignore:
+      - '**/node_modules/**'
+      - '**/dist/**'
+      - '**/build/**'
+      - '**/*.test.ts'
+      - '**/*.test.js'
+      - '**/*.spec.ts'
+      - '**/*.spec.js'
   pull_request:
     branches: [ main, master ]
   schedule:
@@ -40,21 +48,11 @@ jobs:
 
       # Step 2: Initialize CodeQL tools for scanning
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@ea9e4e37992a54ee68a9622e985e60c8e8f12d9f # v3.27.4
+        uses: github/codeql-action/init@f47c8e6a9bd05ef3ee422fc8d8663be7fe4bdc61 # v3.31.8
         with:
           languages: ${{ matrix.language }}
           # Use security-extended query suite for comprehensive scanning
           queries: security-extended
-          # Optimize for JavaScript/TypeScript projects
-          config: |
-            paths-ignore:
-              - '**/node_modules/**'
-              - '**/dist/**'
-              - '**/build/**'
-              - '**/*.test.ts'
-              - '**/*.test.js'
-              - '**/*.spec.ts'
-              - '**/*.spec.js'
 
       # Step 3: Set up Node.js environment
       - name: Setup Node.js
@@ -74,8 +72,6 @@ jobs:
 
       # Step 6: Perform CodeQL Analysis
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@ea9e4e37992a54ee68a9622e985e60c8e8f12d9f # v3.27.4
+        uses: github/codeql-action/analyze@f47c8e6a9bd05ef3ee422fc8d8663be7fe4bdc61 # v3.31.8
         with:
           category: "/language:${{ matrix.language }}"
-          # Upload results even if there are errors
-          upload: true
