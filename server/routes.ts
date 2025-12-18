@@ -3,6 +3,16 @@ import { createServer, type Server } from "http";
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
+
+// Rate limiter for optimize endpoint: 5 requests per minute per IP
+const optimizeLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 5,
+  message: { error: 'Too many optimization requests. Please wait a minute and try again.' },
+  standardHeaders: true, // Return rate limit info in the headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 const prisma = new PrismaClient();
 
@@ -422,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/marketing/optimize', authenticateToken, async (req: any, res) => {
+  app.post('/api/marketing/optimize', optimizeLimiter, authenticateToken, async (req: any, res) => {
     try {
       const userId = req.user.userId;
       const { area } = req.body;
