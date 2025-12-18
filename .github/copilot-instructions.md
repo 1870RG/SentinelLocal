@@ -80,15 +80,15 @@ npm run dev
     /hooks           # Custom React hooks
 /server              # Active backend Express application
   index.ts           # Server entry point
-  routes.ts          # API route definitions (uses Prisma)
-  db.ts              # Drizzle database connection (for alternative implementation)
+  routes.ts          # API route definitions (uses Prisma directly)
+  db.ts              # Drizzle database connection (unused, legacy file)
   vite.ts            # Vite middleware for dev
 /backend             # Alternative Fastify implementation (not currently used in dev)
   server.js          # Fastify server entry point
   /routes            # Fastify route handlers (auth, reviews, ads, chat, marketing)
   /services          # Business logic services
 /prisma              # Active database schema and migrations
-  schema.prisma      # Prisma schema (used by Express server)
+  schema.prisma      # Prisma schema (used by Express server in routes.ts)
 /shared              # Shared types and utilities
   schema.ts          # Drizzle schema (for Fastify alternative)
 /scripts             # Utility scripts (seed.js)
@@ -109,9 +109,9 @@ npm run dev
 - **Styling**: Tailwind utility classes, avoid custom CSS
 
 ### Backend Patterns
-- **API Routes**: RESTful endpoints in `server/routes.ts` (Express) or `backend/routes/*.js` (Fastify alternative)
+- **API Routes**: RESTful endpoints in `server/routes.ts` (Express, uses Prisma directly) or `backend/routes/*.js` (Fastify alternative, uses Drizzle)
 - **Authentication**: JWT tokens validated via middleware (Express) or `fastify.authenticate` decorator (Fastify alternative)
-- **Database**: Prisma Client for all database operations in active Express server
+- **Database**: Prisma Client instantiated and used directly in `server/routes.ts` for the active Express server
 - **Error Handling**: Try-catch blocks with appropriate HTTP status codes
 - **AI Integration**: OpenRouter API with fallback logic for reliability
 
