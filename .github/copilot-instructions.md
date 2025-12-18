@@ -63,7 +63,9 @@ npm run dev
 - `npm run build` - Build for production (Vite + esbuild)
 - `npm start` - Run production build
 - `npm run check` - Type check with TypeScript
-- `npm run db:push` - Push Prisma schema to database
+- `npm run db:push` - Push Drizzle schema to database (for Fastify alternative only)
+- `npx prisma db push` - Push Prisma schema to database (for active Express server)
+- `npx prisma generate` - Generate Prisma client after schema changes
 
 ## Code Organization
 
