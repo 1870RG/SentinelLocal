@@ -7,11 +7,13 @@ on:
     branches: [ main, master, develop ]
   schedule:
     - cron: '0 16 * * 0'
+  workflow_dispatch:
 
 jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       actions: read
       contents: read
@@ -20,21 +22,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript', 'typescript', 'java' ]
+        language: [ 'javascript-typescript' ]
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@ea9e4e37992a54ee68a9571ad114b205d6e0beba # v3.28.11
       with:
         languages: ${{ matrix.language }}
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@ea9e4e37992a54ee68a9571ad114b205d6e0beba # v3.28.11
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@ea9e4e37992a54ee68a9571ad114b205d6e0beba # v3.28.11
       with:
         category: "/language:${{matrix.language}}"
