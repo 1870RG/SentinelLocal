@@ -28,13 +28,13 @@ Sentinel Local is an AI marketing operator for local businesses that creates, ma
 - **JWT** for authentication (not sessions)
 - **bcryptjs** for password hashing
 
-**Note**: There's an alternative Fastify + Drizzle implementation in `/backend/` directory, but the active server (used by `npm run dev`) is the Express implementation in `/server/`.
+**Note**: There's an alternative Fastify implementation in `/backend/` directory that also uses Prisma, but the active server (used by `npm run dev`) is the Express implementation in `/server/`.
 
 ### Database
 - **PostgreSQL** with Prisma schema at `/prisma/schema.prisma`
 - Models: User, Review, AdSummary, ChatMessage, BusinessProfileSetup, AdsCampaignPlan, OptimizationAction
 - Always run `npx prisma generate` after schema changes
-- Alternative Drizzle schema exists at `/shared/schema.ts` for the Fastify implementation
+- Both Express and Fastify implementations use the same Prisma schema
 
 ## Development Setup
 
@@ -63,8 +63,7 @@ npm run dev
 - `npm run build` - Build for production (Vite + esbuild)
 - `npm start` - Run production build
 - `npm run check` - Type check with TypeScript
-- `npm run db:push` - Push Drizzle schema to database (for Fastify alternative only)
-- `npx prisma db push` - Push Prisma schema to database (for active Express server)
+- `npx prisma db push` - Push Prisma schema to database
 - `npx prisma generate` - Generate Prisma client after schema changes
 
 ## Code Organization
@@ -81,16 +80,17 @@ npm run dev
 /server              # Active backend Express application
   index.ts           # Server entry point
   routes.ts          # API route definitions (uses Prisma directly)
-  db.ts              # Drizzle database connection (unused, legacy file)
+  db.ts              # Unused legacy Drizzle configuration
+  storage.ts         # Unused legacy in-memory storage
   vite.ts            # Vite middleware for dev
 /backend             # Alternative Fastify implementation (not currently used in dev)
   server.js          # Fastify server entry point
-  /routes            # Fastify route handlers (auth, reviews, ads, chat, marketing)
+  /routes            # Fastify route handlers (auth, reviews, ads, chat, marketing - all use Prisma)
   /services          # Business logic services
 /prisma              # Active database schema and migrations
-  schema.prisma      # Prisma schema (used by Express server in routes.ts)
+  schema.prisma      # Prisma schema (used by both Express and Fastify servers)
 /shared              # Shared types and utilities
-  schema.ts          # Drizzle schema (for Fastify alternative)
+  schema.ts          # Unused legacy Drizzle schema (minimal, only defines users table)
 /scripts             # Utility scripts (seed.js)
 ```
 
@@ -109,19 +109,17 @@ npm run dev
 - **Styling**: Tailwind utility classes, avoid custom CSS
 
 ### Backend Patterns
-- **API Routes**: RESTful endpoints in `server/routes.ts` (Express, uses Prisma directly) or `backend/routes/*.js` (Fastify alternative, uses Drizzle)
+- **API Routes**: RESTful endpoints in `server/routes.ts` (Express, uses Prisma directly) or `backend/routes/*.js` (Fastify alternative, also uses Prisma)
 - **Authentication**: JWT tokens validated via middleware (Express) or `fastify.authenticate` decorator (Fastify alternative)
-- **Database**: Prisma Client instantiated and used directly in `server/routes.ts` for the active Express server
+- **Database**: Both implementations use Prisma Client - Express instantiates it in `server/routes.ts`, Fastify in `backend/routes/*.js`
 - **Error Handling**: Try-catch blocks with appropriate HTTP status codes
 - **AI Integration**: OpenRouter API with fallback logic for reliability
 
 ### Database Patterns
-- **Prisma Schema**: Single source of truth at `/prisma/schema.prisma` for active Express server
+- **Prisma Schema**: Single source of truth at `/prisma/schema.prisma` for both Express and Fastify implementations
 - **Migrations**: Use `npx prisma db push` for development
 - **Relationships**: Defined in Prisma schema with foreign keys
 - **IDs**: Use `@default(cuid())` for all ID fields in Prisma schema
-
-**Note**: Alternative Drizzle schema exists at `/shared/schema.ts` for Fastify implementation.
 
 ## API Endpoints
 
@@ -166,8 +164,7 @@ npm run dev
 - **Migrations** - Use `npx prisma db push` for dev, proper migrations for production
 - **Transactions** - Use Prisma transactions for multi-step operations
 - **Error handling** - Handle unique constraint violations and not found errors
-
-**Note**: If working with the alternative Fastify implementation, use Drizzle schema at `/shared/schema.ts` instead.
+- **Both implementations** - Express and Fastify both use the same Prisma schema
 
 ### Security
 - **Never commit secrets** - Use environment variables (`.env` file)
@@ -202,18 +199,16 @@ The application uses a **dual-tier AI approach**:
 ### Adding a New API Endpoint
 1. Define route handler in `server/routes.ts` (for Express) or appropriate file in `backend/routes/` (for Fastify)
 2. Add JWT middleware if authentication required (`authenticateToken` for Express, `fastify.authenticate` for Fastify)
-3. Use Prisma for database operations in Express, or Drizzle in Fastify alternative
+3. Use Prisma for database operations in both implementations
 4. Return appropriate HTTP status codes
 5. Update this documentation if it's a major feature
 
 ### Adding a New Database Model
-1. Update `/prisma/schema.prisma` (for active Express server)
+1. Update `/prisma/schema.prisma` (used by both Express and Fastify servers)
 2. Run `npx prisma generate`
 3. Run `npx prisma db push`
 4. Add relationships to existing models if needed
 5. Update TypeScript types in shared folder if needed
-
-**Note**: If working with Fastify alternative, update `/shared/schema.ts` and run `npm run db:push` instead.
 
 ### Adding a New UI Component
 1. Create component in `/client/src/components`
@@ -245,10 +240,11 @@ Required variables in `.env`:
 
 ### Database
 - PostgreSQL required (no SQLite support)
-- Active schema is in `/prisma/schema.prisma` (Prisma ORM)
-- Alternative schema in `/shared/schema.ts` (Drizzle ORM for Fastify)
+- Schema is in `/prisma/schema.prisma` (Prisma ORM)
+- Both Express and Fastify implementations use Prisma
 - Demo data in `scripts/seed.js`
 - Demo credentials: `demo@hvac.com` / `demo123`
+- Legacy Drizzle schema exists at `/shared/schema.ts` but is unused
 
 ### AI Models
 - Uses OpenRouter API for flexible model access
@@ -268,6 +264,5 @@ Required variables in `.env`:
 - Main README: `/README.md`
 - Security policy: `/SECURITY.md`
 - Design guidelines: `/design_guidelines.md`
-- Active Prisma schema: `/prisma/schema.prisma`
-- Alternative Drizzle schema: `/shared/schema.ts`
+- Prisma schema: `/prisma/schema.prisma` (used by both Express and Fastify)
 - Alternative Fastify server: `/backend/server.js`
