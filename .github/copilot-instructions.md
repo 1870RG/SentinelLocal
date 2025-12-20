@@ -28,7 +28,7 @@ Sentinel Local is an AI marketing operator for local businesses that creates, ma
 - **JWT** for authentication (not sessions)
 - **bcryptjs** for password hashing
 
-**Note**: There's an alternative Fastify implementation in `/backend/` directory that also uses Prisma, but the active server (used by `npm run dev`) is the Express implementation in `/server/`.
+**Note**: The Fastify implementation lives in `/backend/` and also uses Prisma. Express in `/server/` is what `npm run dev` starts; run Fastify manually (e.g., `node backend/server.js`) if you need to exercise that stack.
 
 ### Database
 - **PostgreSQL** with Prisma schema at `/prisma/schema.prisma`
@@ -80,7 +80,7 @@ npm run dev
 /server              # Active backend Express application
   index.ts           # Server entry point
   routes.ts          # API route definitions (uses Prisma directly)
-  db.ts              # Unused legacy Drizzle configuration
+  db.ts              # Unused legacy Postgres pool (old Drizzle wiring)
   storage.ts         # Unused legacy in-memory storage
   vite.ts            # Vite middleware for dev
 /backend             # Alternative Fastify implementation (not currently used in dev)
@@ -173,26 +173,25 @@ npm run dev
 - **Bcrypt passwords** - Use bcryptjs with proper salt rounds
 - **JWT tokens** - Short expiration, secure signing
 
-## AI Integration Strategy
+### AI Integration Strategy
 
-The application uses a **dual-tier AI approach**:
+The application uses a **dual-tier AI approach** implemented in `backend/services/llmClient.js`:
 
 1. **Low-Cost Generation** - For routine tasks (review replies, performance summaries)
-   - Primary and backup model retry pattern
-   - Graceful fallback to safe placeholder text
+  - Tries primary model, then backup model via OpenRouter; both require `OPENROUTER_API_KEY`.
+  - If model calls fail, returns safe placeholder text.
 
 2. **Critical Generation** - For business decisions (ROI analysis, ad spend recommendations)
-   - Direct fallback to deterministic metrics-based responses
-   - Never fail silently
+  - Tries the critical model via OpenRouter; requires `OPENROUTER_API_KEY`.
+  - Falls back to deterministic, metrics-based responses if the call fails.
+
+**Important**: Without `OPENROUTER_API_KEY`, OpenRouter calls throw before fallbacks run; set the key to avoid runtime errors in chat endpoints.
 
 ## Testing Guidelines
 
-- **No existing test infrastructure** - Tests are not currently required
-- When adding tests in the future:
-  - Use Vitest or Jest for unit tests
-  - Test utilities in `/lib` and `/hooks`
-  - Test API endpoints with supertest
-  - Mock Prisma client for database tests
+- **No existing automated tests** - Add only if needed for new functionality.
+- Preferred tools: Vitest or Jest for unit tests; Supertest for HTTP routes; mock Prisma client for data access.
+- Target areas: utilities in `/client/src/lib`, hooks in `/client/src/hooks`, and API routes in `/server/routes.ts` or `/backend/routes/*.js`.
 
 ## Common Tasks
 
